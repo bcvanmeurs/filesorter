@@ -27,6 +27,22 @@ fn move_file(homedir: &path::PathBuf, path: path::PathBuf) -> Result<(), Box<dyn
         );
 
         fs::rename(path, new_path)?;
+
+    } else if path.is_dir() {
+        let dir_name = path.file_name().unwrap();
+        let dir_str = dir_name.to_str().unwrap();
+        
+        if !dir_str.chars().all(|c| c.is_ascii_uppercase() || c.is_ascii_digit()){
+            let new_dir = homedir.join("DIRS");
+            fs::create_dir_all(&new_dir)?;
+
+            let new_path = &new_dir.join(dir_name);
+            println!("Move {:?} => {:?}", 
+                path.strip_prefix(homedir)?.as_os_str(),
+                new_path.strip_prefix(homedir)?.as_os_str(),
+            );
+            fs::rename(path, new_path)?;
+        } 
     }
     Ok(())
 }
