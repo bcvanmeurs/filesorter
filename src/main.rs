@@ -4,6 +4,10 @@ use std::error::Error;
 
 fn move_file(homedir: &path::PathBuf, path: path::PathBuf) -> Result<(), Box<dyn Error>>{
     if path.is_file(){
+        let file_name = path.file_name().unwrap();
+        if file_name.to_str().unwrap().starts_with(".") {
+            return Ok(());
+        };
 
         let extension = match path.extension() {
             None => String::from("NOEXT"),
@@ -15,11 +19,11 @@ fn move_file(homedir: &path::PathBuf, path: path::PathBuf) -> Result<(), Box<dyn
         fs::create_dir_all(&new_dir)?;
 
         let new_path = &new_dir
-            .join(path.file_name().unwrap());
+            .join(file_name);
 
         println!("Move {:?} => {:?}", 
-            path.strip_prefix(homedir)?.to_str().unwrap(),
-            new_path.strip_prefix(homedir)?.to_str().unwrap(),
+            path.strip_prefix(homedir)?.as_os_str(),
+            new_path.strip_prefix(homedir)?.as_os_str(),
         );
 
         fs::rename(path, new_path)?;
@@ -39,13 +43,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     Ok(())
 }
-// Add error handling: unwrap() and expect() should be avoided in production code as they panic on errors. Instead, use match statements or the Result type to handle errors properly.
-// Use as_path() instead of path() when getting the path from a DirEntry
-// Use strip_prefix() only when you need to, the function is quite expensive and if you don't need to use it avoid it.
-// Use path.is_file() instead of if path.is_file()
-// Use path.extension() instead of match path.extension()
-// Use path.file_name().unwrap() instead of &path.file_name().unwrap()
-// Use fs::create_dir_all() instead of fs::create_dir_all(&new_dir).unwrap()
-// Use fs::rename() instead of fs::rename(&path, &new_path).unwrap()
-// Add some comments on the code explaining the logic behind it and what each function does.
-// Use as_os_str() instead of to_str().unwrap()
+// Alternative  let files = fs::read_dir("path/to/directory")?
+// .filter_map(|entry| entry.ok())
+// .filter(|entry| !entry.file_name().to_str().unwrap().starts_with("."));
